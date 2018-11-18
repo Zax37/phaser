@@ -406,22 +406,23 @@ var TextureTintPipeline = new Class({
             y = -sprite.displayOriginY + frameY;
         }
 
+        var fx = 1;
+        var fy = 1;
+
         if (sprite.flipX)
         {
-            x += frameWidth;
-            frameWidth *= -1;
+            fx = -1;
         }
 
         if (sprite.flipY)
         {
-            y += frameHeight;
-            frameHeight *= -1;
+            fy = -1;
         }
 
         var xw = x + frameWidth;
         var yh = y + frameHeight;
 
-        spriteMatrix.applyITRS(sprite.x, sprite.y, sprite.rotation, sprite.scaleX, sprite.scaleY);
+        spriteMatrix.applyITRS(sprite.x, sprite.y, sprite.rotation, sprite.scaleX * fx, sprite.scaleY * fy);
 
         camMatrix.copyFrom(camera.matrix);
 
