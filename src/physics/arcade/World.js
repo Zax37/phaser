@@ -2183,18 +2183,10 @@ var World = new Class({
         for (var i = 0; i < mapData.length; i++)
         {
             tile = mapData[i];
-            tileWorldRect.left = tilemapLayer.tileToWorldX(tile.x);
-            tileWorldRect.top = tilemapLayer.tileToWorldY(tile.y);
-
-            // If the map's base tile size differs from the layer's tile size, only the top of the rect
-            // needs to be adjusted since its origin is (0, 1).
-            if (tile.baseHeight !== tile.height)
-            {
-                tileWorldRect.top -= (tile.height - tile.baseHeight) * tilemapLayer.scaleY;
-            }
-
-            tileWorldRect.right = tileWorldRect.left + tile.width * tilemapLayer.scaleX;
-            tileWorldRect.bottom = tileWorldRect.top + tile.height * tilemapLayer.scaleY;
+            tileWorldRect.left = tilemapLayer.tileToWorldX(tile.x) + tile.physicsRect.left;
+            tileWorldRect.top = tilemapLayer.tileToWorldY(tile.y) + tile.physicsRect.top;
+            tileWorldRect.right = tileWorldRect.left + tile.physicsRect.right * tilemapLayer.scaleX;
+            tileWorldRect.bottom = tileWorldRect.top + tile.physicsRect.bottom * tilemapLayer.scaleY;
 
             if (TileIntersectsBody(tileWorldRect, body)
                 && (!processCallback || processCallback.call(callbackContext, sprite, tile))

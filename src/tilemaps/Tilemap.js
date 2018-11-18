@@ -2009,7 +2009,7 @@ var Tilemap = new Class({
 
                     if (tile !== null)
                     {
-                        tile.setSize(undefined, undefined, tileWidth, tileHeight);
+                        tile.setSize(tileWidth, tileHeight);
                     }
                 }
             }

@@ -29,12 +29,6 @@ var Rectangle = require('../geom/rectangle');
  * @param {integer} y - The y coordinate of this tile in tile coordinates.
  * @param {integer} width - Width of the tile in pixels.
  * @param {integer} height - Height of the tile in pixels.
- * @param {integer} baseWidth - The base width a tile in the map (in pixels). Tiled maps support
- * multiple tileset sizes within one map, but they are still placed at intervals of the base
- * tile width.
- * @param {integer} baseHeight - The base height of the tile in pixels (in pixels). Tiled maps
- * support multiple tileset sizes within one map, but they are still placed at intervals of the
- * base tile height.
  */
 var Tile = new Class({
 
@@ -46,7 +40,7 @@ var Tile = new Class({
 
     initialize:
 
-    function Tile (layer, index, x, y, width, height, baseWidth, baseHeight)
+    function Tile (layer, index, x, y, width, height)
     {
         /**
          * The LayerData in the Tilemap data that this tile belongs to.
@@ -104,26 +98,6 @@ var Tile = new Class({
         this.height = height;
 
         /**
-         * The map's base width of a tile in pixels. Tiled maps support multiple tileset sizes
-         * within one map, but they are still placed at intervals of the base tile size.
-         *
-         * @name Phaser.Tilemaps.Tile#baseWidth
-         * @type {integer}
-         * @since 3.0.0
-         */
-        this.baseWidth = (baseWidth !== undefined) ? baseWidth : width;
-
-        /**
-         * The map's base height of a tile in pixels. Tiled maps support multiple tileset sizes
-         * within one map, but they are still placed at intervals of the base tile size.
-         *
-         * @name Phaser.Tilemaps.Tile#baseHeight
-         * @type {integer}
-         * @since 3.0.0
-         */
-        this.baseHeight = (baseHeight !== undefined) ? baseHeight : height;
-
-        /**
          * The x coordinate of the top left of this tile in pixels. This is relative to the top left
          * of the layer this tile is being rendered within. This property does NOT factor in camera
          * scroll, layer scale or layer position.
@@ -144,6 +118,8 @@ var Tile = new Class({
          * @since 3.0.0
          */
         this.pixelY = 0;
+
+        this.physicsRect = {left: 0, top: 0, right: width, bottom: height};
 
         this.updatePixelXY();
 
@@ -369,7 +345,7 @@ var Tile = new Class({
     {
         var tilemapLayer = this.tilemapLayer;
 
-        return (tilemapLayer) ? tilemapLayer.tileToWorldX(this.x, camera) : this.x * this.baseWidth;
+        return (tilemapLayer) ? tilemapLayer.tileToWorldX(this.x, camera) : this.x * this.width;
     },
 
     /**
@@ -405,12 +381,9 @@ var Tile = new Class({
     {
         var tilemapLayer = this.tilemapLayer;
 
-        // Tiled places tiles on a grid of baseWidth x baseHeight. The origin for a tile in grid
-        // units is the bottom left, so the y coordinate needs to be adjusted by the difference
-        // between the base size and this tile's size.
         return tilemapLayer
-            ? tilemapLayer.tileToWorldY(this.y, camera) - (this.height - this.baseHeight) * tilemapLayer.scaleY
-            : this.y * this.baseHeight - (this.height - this.baseHeight);
+            ? tilemapLayer.tileToWorldY(this.y, camera)
+            : this.y * this.height;
     },
 
     /**
@@ -679,17 +652,13 @@ var Tile = new Class({
      *
      * @param {integer} tileWidth - The width of the tile in pixels.
      * @param {integer} tileHeight - The height of the tile in pixels.
-     * @param {integer} baseWidth - The base width a tile in the map (in pixels).
-     * @param {integer} baseHeight - The base height of the tile in pixels (in pixels).
      *
      * @return {Phaser.Tilemaps.Tile} This Tile object.
      */
-    setSize: function (tileWidth, tileHeight, baseWidth, baseHeight)
+    setSize: function (tileWidth, tileHeight)
     {
         if (tileWidth !== undefined) { this.width = tileWidth; }
         if (tileHeight !== undefined) { this.height = tileHeight; }
-        if (baseWidth !== undefined) { this.baseWidth = baseWidth; }
-        if (baseHeight !== undefined) { this.baseHeight = baseHeight; }
 
         this.updatePixelXY();
 
@@ -706,11 +675,8 @@ var Tile = new Class({
      */
     updatePixelXY: function ()
     {
-        // Tiled places tiles on a grid of baseWidth x baseHeight. The origin for a tile is the
-        // bottom left, while the Phaser renderer assumes the origin is the top left. The y
-        // coordinate needs to be adjusted by the difference.
-        this.pixelX = this.x * this.baseWidth;
-        this.pixelY = this.y * this.baseHeight - (this.height - this.baseHeight);
+        this.pixelX = this.x * this.width;
+        this.pixelY = this.y * this.height;
 
         return this;
     },
