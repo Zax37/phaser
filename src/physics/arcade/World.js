@@ -2183,10 +2183,10 @@ var World = new Class({
         for (var i = 0; i < mapData.length; i++)
         {
             tile = mapData[i];
-            tileWorldRect.left = tilemapLayer.tileToWorldX(tile.x) + tile.physicsRect.left;
-            tileWorldRect.top = tilemapLayer.tileToWorldY(tile.y) + tile.physicsRect.top;
-            tileWorldRect.right = tileWorldRect.left + tile.physicsRect.right * tilemapLayer.scaleX;
-            tileWorldRect.bottom = tileWorldRect.top + tile.physicsRect.bottom * tilemapLayer.scaleY;
+            tileWorldRect.left = tilemapLayer.tileToWorldX(tile.x);
+            tileWorldRect.top = tilemapLayer.tileToWorldY(tile.y);
+            tileWorldRect.right = tileWorldRect.left + tile.width * tilemapLayer.scaleX;
+            tileWorldRect.bottom = tileWorldRect.top + tile.height * tilemapLayer.scaleY;
 
             if (TileIntersectsBody(tileWorldRect, body)
                 && (!processCallback || processCallback.call(callbackContext, sprite, tile))

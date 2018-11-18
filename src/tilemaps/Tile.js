@@ -119,8 +119,6 @@ var Tile = new Class({
          */
         this.pixelY = 0;
 
-        this.physicsRect = {left: 0, top: 0, right: width, bottom: height};
-
         this.updatePixelXY();
 
         /**
