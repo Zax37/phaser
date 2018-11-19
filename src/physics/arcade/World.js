@@ -127,7 +127,7 @@ var Wrap = require('../../math/Wrap');
 
 /**
  * An Arcade Physics Collider Type.
- * 
+ *
  * @typedef {(
  * Phaser.GameObjects.GameObject|
  * Phaser.GameObjects.Group|
@@ -258,7 +258,7 @@ var World = new Class({
 
         /**
          * The number of physics steps to be taken per second.
-         * 
+         *
          * This property is read-only. Use the `setFPS` method to modify it at run-time.
          *
          * @name Phaser.Physics.Arcade.World#fps
@@ -317,7 +317,7 @@ var World = new Class({
          * - 0.5 = double speed
          *
          * @name Phaser.Physics.Arcade.World#timeScale
-         * @property {number} 
+         * @property {number}
          * @default 1
          * @since 3.10.0
          */
@@ -417,7 +417,7 @@ var World = new Class({
 
         /**
          * The maximum number of items per node on the RTree.
-         * 
+         *
          * This is ignored if `useTree` is `false`. If you have a large number of bodies in
          * your world then you may find search performance improves by increasing this value,
          * to allow more items per node and less node division.
@@ -431,7 +431,7 @@ var World = new Class({
 
         /**
          * Should this Arcade Physics World use an RTree for Dynamic Physics bodies or not?
-         * 
+         *
          * An RTree is a fast way of spatially sorting of all the moving bodies in the world.
          * However, at certain limits, the cost of clearing and inserting the bodies into the
          * tree every frame becomes more expensive than the search speed gains it provides.
@@ -507,7 +507,7 @@ var World = new Class({
 
     /**
      * Adds an Arcade Physics Body to a Game Object, an array of Game Objects, or the children of a Group.
-     * 
+     *
      * The difference between this and the `enableBody` method is that you can pass arrays or Groups
      * to this method.
      *
@@ -633,7 +633,7 @@ var World = new Class({
      * @since 3.10.0
      *
      * @param {(Phaser.Physics.Arcade.Body|Phaser.Physics.Arcade.StaticBody)} body - The Body to be added to the simulation.
-     * 
+     *
      * @return {(Phaser.Physics.Arcade.Body|Phaser.Physics.Arcade.StaticBody)} The Body that was added to the simulation.
      */
     add: function (body)
@@ -656,10 +656,10 @@ var World = new Class({
 
     /**
      * Disables the Arcade Physics Body of a Game Object, an array of Game Objects, or the children of a Group.
-     * 
+     *
      * The difference between this and the `disableBody` method is that you can pass arrays or Groups
      * to this method.
-     * 
+     *
      * The body itself is not deleted, it just has its `enable` property set to false, which
      * means you can re-enable it again at any point by passing it to enable `World.enable` or `World.add`.
      *
@@ -1770,7 +1770,7 @@ var World = new Class({
      * Game Objects, arrays of Game Objects, Physics Groups, arrays of Physics Groups or normal Groups.
      *
      * If you don't require separation then use {@link #overlap} instead.
-     * 
+     *
      * If two Groups or arrays are passed, each member of one will be tested against each member of the other.
      *
      * If one Group **only** is passed (as `object1`), each member of the Group will be collided against the other members.
@@ -2190,27 +2190,82 @@ var World = new Class({
 
             if (TileIntersectsBody(tileWorldRect, body)
                 && (!processCallback || processCallback.call(callbackContext, sprite, tile))
-                && ProcessTileCallbacks(tile, sprite)
-                && (overlapOnly || SeparateTile(i, body, tile, tileWorldRect, tilemapLayer, this.TILE_BIAS)))
+                && ProcessTileCallbacks(tile, sprite))
             {
-                this._total++;
+                if (tile.physics.rect) {
+                    if (tile.physics.invert) {
+                        const left = tileWorldRect.left,
+                            top = tileWorldRect.top,
+                            right = tileWorldRect.right,
+                            bottom = tileWorldRect.bottom;
 
-                if (collideCallback)
-                {
-                    collideCallback.call(callbackContext, sprite, tile);
+                        if (tile.physics.rect.left) {
+                            tileWorldRect.right = left + (tile.physics.rect.left + 1) * tilemapLayer.scaleX;
+                        } else {
+                            tileWorldRect.left += (tile.physics.rect.right + 1) * tilemapLayer.scaleX;
+                        }
+
+                        if (TileIntersectsBody(tileWorldRect, body)) {
+                            body.blocked.none = false;
+                            body.velocity.x = 0;
+                            if (tile.physics.rect.left) {
+                                body.x = tileWorldRect.right;
+                                body.blocked.left = true;
+                            } else {
+                                body.x = tileWorldRect.left - body.width;
+                                body.blocked.right = true;
+                            }
+                        }
+                        tileWorldRect.right = right;
+                        tileWorldRect.left = left;
+
+                        if (tile.physics.rect.top) {
+                            tileWorldRect.bottom = top + tile.physics.rect.top * tilemapLayer.scaleY;
+                        } else {
+                            tileWorldRect.top += tile.physics.rect.bottom * tilemapLayer.scaleY;
+                        }
+
+                        if (TileIntersectsBody(tileWorldRect, body)) {
+                            body.blocked.none = false;
+                            body.velocity.y = 0;
+                            if (tile.physics.rect.top) {
+                                body.y = tileWorldRect.bottom;
+                                body.blocked.up = true;
+                            } else {
+                                body.y = tileWorldRect.top - body.height;
+                                body.blocked.down = true;
+                            }
+                        }
+                        tileWorldRect.top = top;
+                        tileWorldRect.bottom = bottom;
+
+                        continue;
+                    } else {
+                        tileWorldRect.left += tile.physics.rect.left * tilemapLayer.scaleX;
+                        tileWorldRect.top += tile.physics.rect.top * tilemapLayer.scaleX;
+                        tileWorldRect.right += (tile.physics.rect.right - tile.width) * tilemapLayer.scaleX;
+                        tileWorldRect.bottom += (tile.physics.rect.bottom - tile.height) * tilemapLayer.scaleY;
+                        if (!TileIntersectsBody(tileWorldRect, body)) continue;
+                    }
                 }
 
-                if (overlapOnly && body.onOverlap)
-                {
-                    sprite.emit('overlap', body.gameObject, tile, body, null);
-                }
-                else if (body.onCollide)
-                {
-                    sprite.emit('collide', body.gameObject, tile, body, null);
-                }
+                if (overlapOnly || SeparateTile(i, body, tile, tileWorldRect, tilemapLayer, this.TILE_BIAS)) {
+                    this._total++;
 
-                //  sync changes back to the body
-                body.postUpdate();
+                    if (collideCallback) {
+                        collideCallback.call(callbackContext, sprite, tile);
+                    }
+
+                    if (overlapOnly && body.onOverlap) {
+                        sprite.emit('overlap', body.gameObject, tile, body, null);
+                    }
+                    else if (body.onCollide) {
+                        sprite.emit('collide', body.gameObject, tile, body, null);
+                    }
+
+                    //  sync changes back to the body
+                    body.postUpdate();
+                }
             }
         }
     },
