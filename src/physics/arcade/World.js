@@ -2194,7 +2194,7 @@ var World = new Class({
             {
                 if (tile.physics.rect) {
                     if (tile.physics.invert) {
-                        const left = tileWorldRect.left,
+                        var left = tileWorldRect.left,
                             top = tileWorldRect.top,
                             right = tileWorldRect.right,
                             bottom = tileWorldRect.bottom;
