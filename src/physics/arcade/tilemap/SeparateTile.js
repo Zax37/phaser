@@ -86,7 +86,9 @@ var SeparateTile = function (i, body, tile, tileWorldRect, tilemapLayer, tileBia
     {
         if (faceVertical)
         {
-            oy = TileCheckY(body, tile, tileTop, tileBottom, tileBias);
+            if (body.velocity.y >= 0 || (body.left + tileBias < tileRight && body.right - tileBias > tileLeft)) {
+                oy = TileCheckY(body, tile, tileTop, tileBottom, tileBias);
+            }
 
             //  That's vertical done, check if we still intersects? If not then we can return now
             if (oy !== 0 && !TileIntersectsBody(tileWorldRect, body))
