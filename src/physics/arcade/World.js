@@ -2232,7 +2232,8 @@ var World = new Class({
                                 body.y = tileWorldRect.bottom;
                                 body.blocked.up = true;
                             } else {
-                                body.y = tileWorldRect.top - body.height;
+                                var dY = body.deltaY();
+                                body.y = tileWorldRect.top - body.height + (dY > 0.5 ? 1 : 0);
                                 body.blocked.down = true;
                             }
                         }
@@ -2245,6 +2246,12 @@ var World = new Class({
                         tileWorldRect.top += tile.physics.rect.top * tilemapLayer.scaleX;
                         tileWorldRect.right += (tile.physics.rect.right - tile.width) * tilemapLayer.scaleX;
                         tileWorldRect.bottom += (tile.physics.rect.bottom - tile.height) * tilemapLayer.scaleY;
+
+                        if (body.velocity.x === 0) {
+                          tileWorldRect.left += 8;
+                          tileWorldRect.right -= 8;
+                        }
+
                         if (!TileIntersectsBody(tileWorldRect, body)) continue;
                     }
                 }
